@@ -6,6 +6,7 @@
 #include <chrono>
 #include <sstream>
 #include <tuple>
+#include <processthreadsapi.h>
 #include "bubblesort.h"
 #include "quicksort.h"
 #include "mergesort.h"
@@ -22,13 +23,13 @@ TEST_CASE("Array {7, 0, 6, 2, 9, 8, 5, 3, 1, 4} to sort", "[vector]"){
     }
 
     SECTION("Using quick sort to sort given array"){
-        std::vector<int> sortedArray = quickSort(testArray, 0, testArray.size() - 1);
+        std::vector<int> sortedArray = quickSort(testArray, 0, testArray.size() - 1, true);
 
         REQUIRE(sortedArray == resultArray);
     }
 
     SECTION("Using merge sort to sort given array"){
-        std::vector<int> sortedArray = mergeSort(testArray, 0, testArray.size() - 1);
+        std::vector<int> sortedArray = mergeSort(testArray, testArray.size());
 
         REQUIRE(sortedArray == resultArray);
     }
@@ -50,13 +51,13 @@ TEST_CASE("Empty array", "[vector]"){
     }
 
     SECTION("Using quick sort to sort empty array"){
-        std::vector<int> sortedArray = quickSort(testArray, 0, testArray.size() - 1);
+        std::vector<int> sortedArray = quickSort(testArray, 0, testArray.size() - 1, true);
 
         REQUIRE(sortedArray == testArray);
     }
 
     SECTION("Using merge sort to sort empty array"){
-        std::vector<int> sortedArray = mergeSort(testArray, 0, testArray.size() - 1);
+        std::vector<int> sortedArray = mergeSort(testArray, testArray.size());
 
         REQUIRE(sortedArray == testArray);
     }
@@ -78,13 +79,13 @@ TEST_CASE("Sorted array", "[vector]"){
     }
 
     SECTION("Using quick sort to sort sorted array"){
-        std::vector<int> sortedArray = quickSort(testArray, 0, testArray.size() - 1);
+        std::vector<int> sortedArray = quickSort(testArray, 0, testArray.size() - 1, true);
 
         REQUIRE(sortedArray == testArray);
     }
 
     SECTION("Using merge sort to sort sorted array"){
-        std::vector<int> sortedArray = mergeSort(testArray, 0, testArray.size() - 1);
+        std::vector<int> sortedArray = mergeSort(testArray, testArray.size());
 
         REQUIRE(sortedArray == testArray);
     }
@@ -107,13 +108,13 @@ TEST_CASE("Sorted array in reverse order", "[vector]"){
     }
 
     SECTION("Using quick sort to sort sorted array in reverse order"){
-        std::vector<int> sortedArray = quickSort(testArray, 0, testArray.size() - 1);
+        std::vector<int> sortedArray = quickSort(testArray, 0, testArray.size() - 1, true);
 
         REQUIRE(sortedArray == resultArray);
     }
 
     SECTION("Using merge sort to sort sorted array in reverse order"){
-        std::vector<int> sortedArray = mergeSort(testArray, 0, testArray.size() - 1);
+        std::vector<int> sortedArray = mergeSort(testArray, testArray.size());
 
         REQUIRE(sortedArray == resultArray);
     }
@@ -131,6 +132,17 @@ auto to_num(const std::string& s){
     bool good = (is >> std::ws >> n) && (is >> std::ws).eof();
 
     return std::make_tuple(n, good);
+}
+
+double getCpuTime(){
+    FILETIME a, b, c, d;
+    if(GetProcessTimes(GetCurrentProcess(), &a, &b, &c, &d) != 0){
+        return
+            (double)(d.dwLowDateTime |
+            ((unsigned long long)d.dwHighDateTime << 32)) * 0.0000001;
+    }else{
+        return 0;
+    }
 }
 
 int main(int argc, char* argv[]){
@@ -186,12 +198,12 @@ int main(int argc, char* argv[]){
             }
 
             if(sortFlag == 2){
-                sortedArray = quickSort(array, 0, array.size() - 1);
+                sortedArray = quickSort(array, 0, array.size() - 1, true);
                 filename = "outputQuickSort.txt";
             }
 
             if(sortFlag == 3){
-                sortedArray = mergeSort(array, 0, array.size() - 1);
+                sortedArray = mergeSort(array, array.size());
                 filename = "outputMergeSort.txt";
             }
 
@@ -208,7 +220,6 @@ int main(int argc, char* argv[]){
             std::ofstream outf{filename, std::ios::trunc};
 
             if(outf){
-                std::cout << filename << "\n";
                 for(int i = 0; i < sortedArray.size(); i++){
                     outf << sortedArray[i] << "\n";
                 }
@@ -225,7 +236,412 @@ int main(int argc, char* argv[]){
         }
 
         if(flag == 3){
+            int benchmarkFlag{-1}, caseFlag{-1};
+            std::string filename;
+            srand((unsigned) time(NULL));
 
+            std::cout << "\n1. Benchmark bubble sort algorithm.\n";
+            std::cout << "2. Benchmark quick sort algorithm.\n";
+            std::cout << "3. Benchmark merge sort algorithm.\n";
+            std::cout << "4. Benchmark heap sort algorithm.\n\n";
+
+            std::cin >> benchmarkFlag;
+
+            if(benchmarkFlag == 1){
+                filename = "bubbleBenchmark.txt";
+
+                std::ofstream outf{filename, std::ios::trunc};
+
+                if(outf){
+                    std::cout << "\n1. Best case (array is already sorted).\n";
+                    std::cout << "2. Average case (array is unsorted ).\n";
+                    std::cout << "3. Worst case (array is sorted in reverse order).\n";
+
+                    std::cin >> caseFlag;
+
+                    if(caseFlag == 1){
+                        for(int i = 100000; i <= 10000000; i+=100000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = 0; j < i; j++){
+                                array.push_back(j);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = bubbleSort(array, array.size());
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag == 2){
+                        for(int i = 1000; i <= 50000; i+=1000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = 0; j < i; j++){
+                                array.push_back(rand() % i);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = bubbleSort(array, array.size());
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag == 3){
+                        for(int i = 1000; i <= 50000; i+=1000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = i - 1; j >= 0; j--){
+                                array.push_back(j);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = bubbleSort(array, array.size());
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag != 1 && caseFlag != 2 && caseFlag != 3){
+                        std::cout << "Incorrect option!\n\n";
+                        continue;
+                    }
+                } else{
+                    std::cout << "\nSomething wrong with creating " << filename << "\n\n";
+                    continue;
+                }
+
+                outf.close();
+
+                
+            }
+
+            if(benchmarkFlag == 2){
+                filename = "quickBenchmark.txt";
+
+                std::ofstream outf{filename, std::ios::trunc};
+
+                if(outf){
+                    std::cout << "\n1. Best case (array is already sorted).\n";
+                    std::cout << "2. Average case (array is unsorted ).\n";
+                    std::cout << "3. Worst case (array is sorted in reverse order).\n";
+
+                    std::cin >> caseFlag;
+
+                    if(caseFlag == 1){
+                        for(int i = 1000; i <= 50000; i+=1000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = 0; j < i; j++){
+                                array.push_back(j);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = quickSort(array, 0, array.size() - 1, true);
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag == 2){
+                        for(int i = 1000; i <= 50000; i+=1000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = 0; j < i; j++){
+                                array.push_back(rand() % i);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = quickSort(array, 0, array.size() - 1, true);
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag == 3){
+                        for(int i = 1000; i <= 50000; i+=1000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = i - 1; j >= 0; j--){
+                                array.push_back(j);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = quickSort(array, 0, array.size() - 1, false);
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag != 1 && caseFlag != 2 && caseFlag != 3){
+                        std::cout << "Incorrect option!\n\n";
+                        continue;
+                    }
+                } else{
+                    std::cout << "\nSomething wrong with creating " << filename << "\n\n";
+                    continue;
+                }
+
+                outf.close();
+            }
+
+            if(benchmarkFlag == 3){
+                filename = "mergeBenchmark.txt";
+
+                std::ofstream outf{filename, std::ios::trunc};
+
+                if(outf){
+                    std::cout << "\n1. Best case (array is already sorted).\n";
+                    std::cout << "2. Average case (array is unsorted ).\n";
+                    std::cout << "3. Worst case (array is sorted in reverse order).\n";
+
+                    std::cin >> caseFlag;
+
+                    if(caseFlag == 1){
+                        for(int i = 100000; i <= 5000000; i+=100000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = 0; j < i; j++){
+                                array.push_back(j);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = mergeSort(array, array.size());
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag == 2){
+                        for(int i = 100000; i <= 5000000; i+=100000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = 0; j < i; j++){
+                                array.push_back(rand() % i);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = mergeSort(array, array.size());
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag == 3){
+                        for(int i = 100000; i <= 5000000; i+=100000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = i - 1; j >= 0; j--){
+                                array.push_back(j);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = mergeSort(array, array.size());
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag != 1 && caseFlag != 2 && caseFlag != 3){
+                        std::cout << "Incorrect option!\n\n";
+                        continue;
+                    }
+                } else{
+                    std::cout << "\nSomething wrong with creating " << filename << "\n\n";
+                    continue;
+                }
+
+                outf.close();
+
+                
+            }
+
+            if(benchmarkFlag == 4){
+                filename = "heapBenchmark.txt";
+
+                std::ofstream outf{filename, std::ios::trunc};
+
+                if(outf){
+                    std::cout << "\n1. Best case (array is already sorted).\n";
+                    std::cout << "2. Average case (array is unsorted ).\n";
+                    std::cout << "3. Worst case (array is sorted in reverse order).\n";
+
+                    std::cin >> caseFlag;
+
+                    if(caseFlag == 1){
+                        for(int i = 100000; i <= 5000000; i+=100000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = 0; j < i; j++){
+                                array.push_back(j);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = heapSort(array, array.size());
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag == 2){
+                        for(int i = 100000; i <= 5000000; i+=100000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = 0; j < i; j++){
+                                array.push_back(rand() % i);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = heapSort(array, array.size());
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag == 3){
+                        for(int i = 100000; i <= 5000000; i+=100000){
+                            std::vector<int> array, sortedArray;
+                            double cpuStart, cpuEnd;
+
+                            for(int j = i - 1; j >= 0; j--){
+                                array.push_back(j);
+                            }
+
+                            auto start = std::chrono::high_resolution_clock::now();
+                            cpuStart = getCpuTime();
+                            sortedArray = heapSort(array, array.size());
+                            cpuEnd = getCpuTime();
+                            auto stop = std::chrono::high_resolution_clock::now();
+
+                            double cpuTimeTaken = (cpuEnd - cpuStart);
+                            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+                            std::cout << "\nFor i=" << i << "\n";
+                            std::cout << "Execution time [ms]: " << duration.count() << "\n";
+                            std::cout << "CPU execution time [s]: " << cpuTimeTaken << "\n\n";
+                            outf << duration.count() << "," << cpuTimeTaken << "\n";
+                        }
+                    }
+
+                    if(caseFlag != 1 && caseFlag != 2 && caseFlag != 3){
+                        std::cout << "Incorrect option!\n\n";
+                        continue;
+                    }
+                } else{
+                    std::cout << "\nSomething wrong with creating " << filename << "\n\n";
+                    continue;
+                }
+
+                outf.close();
+
+
+                
+            }
+
+            if(flag != 1 && flag != 2 && flag != 3 && flag != 4){
+                std::cout << "Incorrect option!\n\n";
+                continue;
+            }
         }
 
         if(flag == 4){

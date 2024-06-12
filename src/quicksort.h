@@ -18,13 +18,46 @@ int partition(std::vector<int>& array, int low, int high){
     return (i + 1);
 }
 
-std::vector<int> quickSort(std::vector<int>& array, int low, int high){
+std::vector<int> quickSort(std::vector<int>& array, int low, int high, bool pivotType){
     if(low < high){
-        int pivot = partition(array, low, high);
+        if(pivotType){
+            std::vector<int> stack(high - low + 1);
+            int top = -1;
 
-        quickSort(array, low, pivot - 1);
-        quickSort(array, pivot + 1, high);
+            stack.insert(stack.begin() + (++top), low);
+            stack.insert(stack.begin() + (++top), high);
 
+            while(top >= 0){
+                high = stack[top--];
+                low = stack[top --];
+
+                int p = partition(array, low, high);
+
+                if(p - 1 > low){
+                    stack.insert(stack.begin() + (++top), low);
+                    stack.insert(stack.begin() + (++top), p - 1);
+                }
+
+                if(p + 1 < high){
+                    stack.insert(stack.begin() + (++top), p + 1);
+                    stack.insert(stack.begin() + (++top), high);
+                }
+            }
+        }else{
+            int pivot = high;
+            int i = low - 1;
+
+            for(int j = low; j <= high - 1; j++){
+                if(array[j] <= array[pivot]){
+                    i++;
+                    std::swap(array[i], array[j]);
+                }
+            }
+            std::swap(array[i + 1], array[pivot]);
+            int p = i + 1;
+            quickSort(array, low, p - 1, false);
+            quickSort(array, p + 1, high, false);
+        }
         
     }
     return array;

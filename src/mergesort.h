@@ -47,14 +47,15 @@ void merge(std::vector<int>& array, int const left, int const mid, int const rig
    std::vector<int>().swap(rightArray);
 }
 
-std::vector<int> mergeSort(std::vector<int>& array, int const begin, int const end){
-    if(begin >= end)
-        return array;
+std::vector<int> mergeSort(std::vector<int>& array, int n){
+    for(int currentSize = 1; currentSize <= n; currentSize = 2 * currentSize){
+          for(int leftStart = 0; leftStart < n - 1; leftStart += 2 * currentSize){
+               int mid = std::min(leftStart + currentSize - 1, n - 1);
+               int rightEnd = std::min(leftStart + 2 * currentSize - 1, n - 1);
 
-    int mid = {begin + (end - begin) / 2};
-    mergeSort(array, begin, mid);
-    mergeSort(array, mid + 1, end);
-    merge(array, begin, mid, end);
+               merge(array, leftStart, mid, rightEnd);
+          }
+    }
 
     return array;
 }
