@@ -2,7 +2,7 @@
 #define _MERGESORT_H
 #include <vector>
 
-void merge(std::vector<int> array, int const left, int const mid, int const right){
+void merge(std::vector<int>& array, int const left, int const mid, int const right){
    int const subArrayOne = mid - left + 1;
    int const subArrayTwo = right - mid;
 
@@ -47,16 +47,16 @@ void merge(std::vector<int> array, int const left, int const mid, int const righ
    std::vector<int>().swap(rightArray);
 }
 
-std::vector<int> mergeSort(std::vector<int> array, int const begin, int const end){
-    std::vector<int> sortedArray = array;
-    
+std::vector<int> mergeSort(std::vector<int>& array, int const begin, int const end){
     if(begin >= end)
-        return sortedArray;
+        return array;
 
-    int mid = begin + (end - begin) / 2;
-    mergeSort(sortedArray, begin, mid);
-    mergeSort(sortedArray, mid + 1, end);
-    merge(sortedArray, begin, mid, end);
+    int mid = {begin + (end - begin) / 2};
+    mergeSort(array, begin, mid);
+    mergeSort(array, mid + 1, end);
+    merge(array, begin, mid, end);
+
+    return array;
 }
 
 
