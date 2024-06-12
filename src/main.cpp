@@ -4,11 +4,12 @@
 #include <fstream>
 #include <time.h>
 #include <chrono>
+#include <sstream>
+#include <tuple>
 #include "bubblesort.h"
 #include "quicksort.h"
 #include "mergesort.h"
 #include "heapsort.h"
-
 
 TEST_CASE("Array {7, 0, 6, 2, 9, 8, 5, 3, 1, 4} to sort", "[vector]"){
     std::vector<int> testArray = {7, 0, 6, 2, 9, 8, 5, 3, 1, 4};
@@ -124,6 +125,14 @@ TEST_CASE("Sorted array in reverse order", "[vector]"){
     }
 }
 
+auto to_num(const std::string& s){
+    std::istringstream is(s);
+    int n;
+    bool good = (is >> std::ws >> n) && (is >> std::ws).eof();
+
+    return std::make_tuple(n, good);
+}
+
 int main(int argc, char* argv[]){
     int flag {-1};
 
@@ -136,15 +145,79 @@ int main(int argc, char* argv[]){
         std::cin >> flag;
 
         if(flag == 1){
+            std::vector<int> array, sortedArray;
             std::ifstream inf{"input.txt"};
+            std::string line, filename{""};
+            int n, sortFlag {-1};
+            bool good;
 
-            if(!inf){
-                std::cerr << "Something went wrong with opening 'input.txt'\n\n.";
+            if(inf){
+                while(std::getline(inf, line)){
+                    try{
+                        std::tie(n, good) = to_num(line);
+                        if(!good){
+                            throw(line);
+                        }
+                    }
+                    catch(std::string wrongLine){
+                        std::cout << "\nError: non-integer line " << line << " has occured in 'input.txt' file.\n";
+                        return 1;
+                    }
+
+                    array.push_back(std::stoi(line));
+                }
+            }else{
+                std::cout << "\n'input.txt' file doesn't exists!\n\n";
                 continue;
             }
 
-            
+            inf.close();
 
+            std::cout << "\n1. Sort array with bubble sort algorithm.\n";
+            std::cout << "2. Sort array with quick sort algorithm.\n";
+            std::cout << "3. Sort array with merge sort algorithm.\n";
+            std::cout << "4. Sort array with heap sort algorithm.\n\n";
+
+            std::cin >> sortFlag;
+
+            if(sortFlag == 1){
+                sortedArray = bubbleSort(array, array.size());
+                filename = "outputBubbleSort.txt";
+            }
+
+            if(sortFlag == 2){
+                sortedArray = quickSort(array, 0, array.size() - 1);
+                filename = "outputQuickSort.txt";
+            }
+
+            if(sortFlag == 3){
+                sortedArray = mergeSort(array, 0, array.size() - 1);
+                filename = "outputMergeSort.txt";
+            }
+
+            if(sortFlag == 4){
+                sortedArray = heapSort(array, array.size());
+                filename = "outputHeapSort.txt";
+            }
+
+            if(sortFlag != 1 && sortFlag != 2 && sortFlag != 3 && sortFlag != 4){
+                std::cout << "Incorrect option!\n\n";
+                continue;
+            }
+
+            std::ofstream outf{filename, std::ios::trunc};
+
+            if(outf){
+                std::cout << filename << "\n";
+                for(int i = 0; i < sortedArray.size(); i++){
+                    outf << sortedArray[i] << "\n";
+                }
+            } else{
+                std::cout << "\nSomething wrong with creating " << filename << "\n\n";
+                continue;
+            }
+
+            outf.close();
         }
 
         if(flag == 2){
