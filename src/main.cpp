@@ -236,7 +236,7 @@ int main(int argc, char* argv[]){
         }
 
         if(flag == 3){
-            int benchmarkFlag{-1}, caseFlag{-1};
+            int benchmarkFlag{-1};
             std::string filename;
             srand((unsigned) time(NULL));
 
@@ -253,6 +253,7 @@ int main(int argc, char* argv[]){
                 std::ofstream outf{filename, std::ios::trunc};
 
                 if(outf){
+                    int caseFlag{-1};
                     std::cout << "\n1. Best case (array is already sorted).\n";
                     std::cout << "2. Average case (array is unsorted ).\n";
                     std::cout << "3. Worst case (array is sorted in reverse order).\n";
@@ -284,7 +285,7 @@ int main(int argc, char* argv[]){
                     }
 
                     if(caseFlag == 2){
-                        for(int i = 1000; i <= 50000; i+=1000){
+                        for(int i = 1000; i <= 30000; i+=1000){
                             std::vector<int> array, sortedArray;
                             double cpuStart, cpuEnd;
 
@@ -308,7 +309,7 @@ int main(int argc, char* argv[]){
                     }
 
                     if(caseFlag == 3){
-                        for(int i = 1000; i <= 50000; i+=1000){
+                        for(int i = 1000; i <= 30000; i+=1000){
                             std::vector<int> array, sortedArray;
                             double cpuStart, cpuEnd;
 
@@ -346,6 +347,7 @@ int main(int argc, char* argv[]){
             }
 
             if(benchmarkFlag == 2){
+                int caseFlag{-1};
                 filename = "quickBenchmark.txt";
 
                 std::ofstream outf{filename, std::ios::trunc};
@@ -358,7 +360,7 @@ int main(int argc, char* argv[]){
                     std::cin >> caseFlag;
 
                     if(caseFlag == 1){
-                        for(int i = 1000; i <= 50000; i+=1000){
+                        for(int i = 1000; i <= 30000; i+=1000){
                             std::vector<int> array, sortedArray;
                             double cpuStart, cpuEnd;
 
@@ -382,7 +384,7 @@ int main(int argc, char* argv[]){
                     }
 
                     if(caseFlag == 2){
-                        for(int i = 1000; i <= 50000; i+=1000){
+                        for(int i = 1000; i <= 100000; i+=1000){
                             std::vector<int> array, sortedArray;
                             double cpuStart, cpuEnd;
 
@@ -442,6 +444,7 @@ int main(int argc, char* argv[]){
             }
 
             if(benchmarkFlag == 3){
+                int caseFlag{-1};
                 filename = "mergeBenchmark.txt";
 
                 std::ofstream outf{filename, std::ios::trunc};
@@ -540,6 +543,7 @@ int main(int argc, char* argv[]){
             }
 
             if(benchmarkFlag == 4){
+                int caseFlag{-1};
                 filename = "heapBenchmark.txt";
 
                 std::ofstream outf{filename, std::ios::trunc};

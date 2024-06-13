@@ -44,19 +44,28 @@ std::vector<int> quickSort(std::vector<int>& array, int low, int high, bool pivo
                 }
             }
         }else{
-            int pivot = high;
-            int i = low - 1;
+            std::vector<int> stack(high - low + 1);
+            int top = -1;
 
-            for(int j = low; j <= high - 1; j++){
-                if(array[j] <= array[pivot]){
-                    i++;
-                    std::swap(array[i], array[j]);
+            stack.insert(stack.begin() + (++top), low);
+            stack.insert(stack.begin() + (++top), high);
+
+            while(top >= 0){
+                high = stack[top--];
+                low = stack[top --];
+
+                int p = high;
+
+                if(p - 1 > low){
+                    stack.insert(stack.begin() + (++top), low);
+                    stack.insert(stack.begin() + (++top), p - 1);
+                }
+
+                if(p + 1 < high){
+                    stack.insert(stack.begin() + (++top), p + 1);
+                    stack.insert(stack.begin() + (++top), high);
                 }
             }
-            std::swap(array[i + 1], array[pivot]);
-            int p = i + 1;
-            quickSort(array, low, p - 1, false);
-            quickSort(array, p + 1, high, false);
         }
         
     }
